@@ -21,12 +21,12 @@ export type ActionInput = {
 export function readActionInput(): ActionInput {
   const ketryxUrl = core.getInput('ketryx-url') || 'https://app.ketryx.com';
 
-  const project = core.getInput('project');
+  const project = process.env.INPUT_PROJECT;
   if (!project) {
     throw new Error('Missing input project');
   }
 
-  const apiKey = core.getInput('api-key');
+  const apiKey = process.env.INPUT_API_KEY;
   if (!apiKey) {
     throw new Error('Missing input api-key');
   }

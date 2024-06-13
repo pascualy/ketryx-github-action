@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 import glob from 'glob-promise';
-import { readActionInput } from './input';
+import { readActionInput, ActionInput } from './input';
 import { ArtifactData, uploadBuild, uploadBuildArtifact } from './upload';
 
-async function run(): Promise<void> {
+async function _run(): Promise<void> {
   try {
     const input = readActionInput();
 
@@ -55,6 +55,30 @@ async function run(): Promise<void> {
     core.setOutput('ok', buildData.ok);
     core.setOutput('error', buildData.error);
     core.setOutput('build-id', buildData.buildId);
+  } catch (error) {
+    core.debug(`Encountered error ${error}`);
+    if (error instanceof Error) {
+      core.setFailed(error.message);
+    }
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    const apiKeys = core.getInput('api-key').split(',');
+    const projects = core.getInput('project').split(',');
+    core.debug(`Projects: ${JSON.stringify(projects)}`);
+    
+    if (apiKeys.length !== projects.length) {
+      throw new Error('The number of api-keys must match the number of projects');
+    }
+
+    for (let i = 0; i < apiKeys.length; i++) {
+      process.env['INPUT_API_KEY'] = apiKeys[i];
+      process.env['INPUT_PROJECT'] = projects[i];
+
+      await _run();
+    }
   } catch (error) {
     core.debug(`Encountered error ${error}`);
     if (error instanceof Error) {
